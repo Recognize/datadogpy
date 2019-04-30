@@ -1,21 +1,13 @@
 '''
-
 Wraps shell commands and sends the result to Datadog as events. Ex:
-
 dogwrap -n test-job -k $API_KEY --submit_mode all "ls -lah"
-
 Note that you need to enclose your command in quotes to prevent python
 from thinking the command line arguments belong to the python command
 instead of the wrapped command.
-
 You can also have the script only send events if they fail:
-
 dogwrap -n test-job -k $API_KEY --submit_mode errors "ls -lah"
-
 And you can give the command a timeout too:
-
 dogwrap -n test-job -k $API_KEY --timeout=1 "sleep 3"
-
 '''
 # stdlib
 import optparse
@@ -66,9 +58,15 @@ class OutputReader(threading.Thread):
         for line in iter(self._out.readline, b''):
             if self._fwd_out is not None:
                 fwd_out_encoding = self._fwd_out.encoding or 'UTF-8'
-                self._fwd_out.write(line.decode(fwd_out_encoding, 'ignore'))
-            line = line.decode('utf-8')
-            self._out_content += line
+                try:
+                  self._fwd_out.write(line.decode(fwd_out_encoding, 'ignore'))
+                except:
+                  print "Caught exception outputting line, skipping output and continuing..."
+            try:
+              line = line.decode('utf-8')
+              self._out_content += line
+            except:
+              print "Caught exception decoding line, skipping and continuing"
         self._out.close()
 
     @property
@@ -103,6 +101,8 @@ def execute(cmd, cmd_timeout, sigterm_timeout, sigkill_timeout,
     returncode = -1
     stdout = ''
     stderr = ''
+    print 'Running modified wrap.py for testing unicode issue'
+
     try:
         proc = subprocess.Popen(u' '.join(cmd), stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, shell=True)
@@ -155,7 +155,6 @@ def execute(cmd, cmd_timeout, sigterm_timeout, sigkill_timeout,
 def trim_text(text, max_len):
     """
     Trim input text to fit the `max_len` condition.
-
     If trim is needed: keep the first 1/3rd of the budget on the top,
     and the other 2 thirds on the bottom.
     """
@@ -178,7 +177,6 @@ def trim_text(text, max_len):
 def build_event_body(cmd, returncode, stdout, stderr, notifications):
     """
     Format and return an event body.
-
     Note: do not exceed MAX_EVENT_BODY_LENGTH length.
     """
     fmt_stdout = u""
