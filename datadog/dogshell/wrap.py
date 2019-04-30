@@ -62,6 +62,7 @@ class OutputReader(threading.Thread):
                   self._fwd_out.write(line.decode(fwd_out_encoding, 'ignore'))
                 except:
                   print "Caught exception outputting line, skipping output and continuing..."
+                  print("problem line: ",line)
             try:
               line = line.decode('utf-8')
               self._out_content += line
