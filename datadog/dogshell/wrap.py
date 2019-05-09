@@ -264,7 +264,12 @@ returned (the command outputs remains buffered in dogwrap meanwhile)")
 
     cmd = []
     for part in args:
+        part = unicode(part, 'utf-8')
         cmd.extend(part.split(' '))
+        
+    if cmd[0] == "all":
+        cmd.pop(0)
+    
     # If silent is checked we force the outputs to be buffered (and therefore
     # not forwarded to the Terminal streams) and we just avoid printing the
     # buffers at the end
